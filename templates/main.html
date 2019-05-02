@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Live Graph Service</title>
+
+	  <!-- Bootstrap and libraries -->
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.4/Chart.js"></script>
+	
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div class="container-fluid">
+	  <div class="navbar-header">
+		<a class="navbar-brand" href="/" style="color: white">Live Graph Service</a>
+	  </div>
+	  <!-- Collect the nav links, forms, and other content for toggling -->
+	</div>
+  </div>
+
+  <!-- padding -->
+  <div style="height: 90px"></div>
+
+  <!-- buttons -->
+  <div class="btn-group" role="group" style="padding-left: 15px">
+	<button class="btn btn-default" id="changeButton">start</button>
+	<button class="btn btn-default" id="resetButton" onclick="reset()">reset</button>
+  </div>
+
+	<div class="container">
+	  <!-- Example row of columns -->
+	  
+		
+		
+	  <div>  
+		<canvas id="channel_chart" width="900" height="300"></canvas>
+	  </div>
+	  <div class="row">
+		<!-- <script src="/static/js/lib.js"></script> -->
+		<script type="text/javascript">
+			$(document).ready(function(){
+
+				var i = 1;
+				
+				var chartdata = {
+					  labels: [0],
+					  datasets: [
+						  {
+							  label: "D1",
+							  fill: false,
+							  borderColor: '#03E236',
+							  fillColor: "rgba(220,220,220,0.2)",
+							  strokeColor: "rgba(220,220,220,1)",
+							  pointColor: "rgba(220,220,220,1)",
+							  pointStrokeColor: "#fff",
+							  pointHighlightFill: "#fff",
+							  pointHighlightStroke: "rgba(220,220,220,1)",
+							  data: [0]
+						  },
+						  {
+							  label: "D2",
+							  fill: false,
+							  borderColor: '#80b6f4',
+							  fillColor: "rgba(151,187,205,0.2)",
+							  strokeColor: "rgba(151,187,205,1)",
+							  pointColor: "rgba(151,187,205,1)",
+							  pointStrokeColor: "#fff",
+							  pointHighlightFill: "#fff",
+							  pointHighlightStroke: "rgba(151,187,205,1)",
+							  data: [0]
+						  },
+						  {
+							  label: "D3",
+							  fill: false,
+							  borderColor: '#F7FA07', 
+							  fillColor: "rgba(220,220,220,0.2)",
+							  strokeColor: "rgba(220,220,220,1)",
+							  pointColor: "rgba(220,220,220,1)",
+							  pointStrokeColor: "#fff",
+							  pointHighlightFill: "#fff",
+							  pointHighlightStroke: "rgba(220,220,220,1)",
+							  data: [0]
+						  },
+						  {
+							  label: "D4",
+							  fill: false,
+							  borderColor: '#EF8E19',
+							  fillColor: "rgba(151,187,205,0.2)",
+							  strokeColor: "rgba(151,187,205,1)",
+							  pointColor: "rgba(151,187,205,1)",
+							  pointStrokeColor: "#fff",
+							  pointHighlightFill: "#fff",
+							  pointHighlightStroke: "rgba(151,187,205,1)",
+							  data: [0]
+						  }
+					  ]
+				  }
+
+			var options = {
+				responsive: true,
+				title: {
+					display: true,
+					text: 'Chart.js Line Chart'
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false,
+				},
+				hover: {
+					mode: 'nearest',
+					intersect: true
+				},
+				scales: {
+					xAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Month'
+						}
+					}],
+					yAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Value'
+						}
+					}]
+				},
+				plugins: {
+					colorschemes: {
+						scheme: 'brewer.Paired12'
+					}
+				}
+			}
+		var ctx = document.getElementById("channel_chart").getContext("2d");
+
+		var mychart = new Chart(ctx, {
+			type: 'line',
+			data: chartdata,
+			options: options
+		});   
+
+		var sock = io.connect('http://127.0.0.1:8000');
+
+						
+			sock.on('draw', function(countdata){
+			  if($('#changeButton').html() == 'stop'){
+				chartdata.labels.push(i++);
+				chartdata.datasets[0].data.push(countdata[0]); 
+				chartdata.datasets[1].data.push(countdata[1]); 
+				chartdata.datasets[2].data.push(countdata[2]); 
+				chartdata.datasets[3].data.push(countdata[3]); 
+				mychart.update();
+					  }
+
+			});
+
+			// change mode
+			$('#changeButton').on('click', function(){
+			  // change mode: stop -> start
+			  if($('#changeButton').html() == 'start'){
+				$('#changeButton').html('stop');
+				sock.emit('change mode', {'mode': 'start'});
+			  }
+			  // change mode: start -> stop
+			  else{
+				$('#changeButton').html('start');
+				sock.emit('change mode', {'mode': 'stop'});
+			  }
+			});
+		  });
+		</script>
+	  </div>
+	</div>
+  </body>
+</html>
